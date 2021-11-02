@@ -6,16 +6,17 @@ import { ILoginResponse } from './interfaces/ILoginResponse';
 
 @Injectable()
 export class LoginService {
-  async login(loginDto: LoginDto): Promise<ILoginResponse | any> {
+  async login(loginDto: LoginDto): Promise<ILoginResponse> {
     const data: LoginServiceDto = {
       client_id: loginDto.username,
       client_secret: loginDto.password,
     };
 
-    const response = await axios.post(
+    const response: ILoginResponse = await axios.post(
       'https://dare-nodejs-assessment.herokuapp.com/api/login',
       data,
     );
-    return response.data;
+
+    return response;
   }
 }
