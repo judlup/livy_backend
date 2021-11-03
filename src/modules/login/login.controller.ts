@@ -1,7 +1,6 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login-dto';
-import { ILoginResponse } from './interfaces/ILoginResponse';
 import { LoginService } from './login.service';
 
 @ApiTags('Auth')
@@ -48,7 +47,7 @@ export class LoginController {
     },
   })
   async login(@Body() loginDto: LoginDto) {
-    const response: ILoginResponse = await this.loginService.login(loginDto);
+    const response = await this.loginService.login(loginDto);
     return response;
   }
 }

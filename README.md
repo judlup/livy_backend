@@ -6,7 +6,7 @@
 
 - [ ] Add pagination by default 10 elements per page, for limit parameter and name parameter works for a search engine
 
-- [ ] Extract role, overall info and role from the token
+- [x] Extract role, overall info and role from the token
 
 - [ ] In get clients endpoint, there is necessary to add a role validation, if the role is not admin, the user can only see the clients that are in the same role, else the user can see all the clients
 
