@@ -17,8 +17,7 @@ jobs:
     
       - uses: actions/setup-node@v1
         with:
-          node-version: 12
-      - run: npm install yarn
-      - run: yarn install
+          node-version: 16
+      - run: npm install
       - run: npm run start & npx wait-on http://localhost:3000
       - run: npm test
