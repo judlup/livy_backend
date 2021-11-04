@@ -1,17 +1,20 @@
-import { Controller, Get, HttpCode, Query } from '@nestjs/common';
+import { Controller, Get, HttpCode, Query, Req, Res } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { LoginService } from '../login/login.service';
 import { ClientsService } from './clients.service';
 import { ClientsDto } from './dto/clients.dt';
-
 @ApiTags('Clients')
 @Controller('clients')
 export class ClientsController {
-  constructor(private readonly clientsService: ClientsService) {}
+  constructor(
+    private readonly clientsService: ClientsService,
+    private readonly loginService: LoginService,
+  ) {}
 
   @Get()
   @ApiBearerAuth()
@@ -66,9 +69,44 @@ export class ClientsController {
       properties: { code: { type: 'number' }, message: { type: 'string' } },
     },
   })
-  async getClients(@Query() params: ClientsDto) {
-    console.log(params.limit, params.name);
-    return await this.clientsService.getClients();
+  async getClients(@Query() params: ClientsDto, @Req() req, @Res() res) {
+    const token = req.headers.authorization;
+    if (token !== undefined) {
+      const clients = await this.clientsService.getClients(token);
+
+      if (clients === undefined) {
+        // This part could be improved by using a refresh token in authorization server.
+        // Instead of using a new token, the client could use the refresh token to get the information without issues.
+        const loginData = {
+          username: 'dare',
+          password: 's3cr3t',
+        };
+        const user = await this.loginService.login(loginData);
+        const clients = await this.clientsService.getClients(
+          `Bearer ${user.token}`,
+        );
+        return res
+          .status(200)
+          .json(
+            clientsPaginated(
+              clients,
+              params.limit,
+              params.page,
+              clients.length,
+            ),
+          );
+      }
+      return res
+        .status(200)
+        .json(
+          clientsPaginated(clients, params.limit, params.page, clients.length),
+        );
+    } else {
+      return res.status(401).json({
+        code: 401,
+        message: 'Unauthorized error',
+      });
+    }
   }
 
   @Get('/:id')
@@ -81,3 +119,29 @@ export class ClientsController {
     // return this.clientsService.getClientPolicies(id);
   }
 }
+
+const clientsPaginated = (
+  clients: any,
+  limit = 10,
+  page = 1,
+  total: number,
+) => {
+  const clientsPaginated = chunk(clients, limit);
+  const res = {
+    page: page,
+    limit: limit,
+    total: total,
+    pages: clientsPaginated.length,
+    clients: clientsPaginated[page - 1],
+  };
+  return res;
+};
+
+const chunk = (json: any, size: number) => {
+  const result = [];
+  while (json.length) {
+    result.push(json.splice(0, size));
+  }
+
+  return result;
+};

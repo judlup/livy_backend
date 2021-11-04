@@ -6,6 +6,10 @@ export class ClientsDto {
   @ApiProperty({ default: 10, required: false })
   limit: number;
 
+  @IsNumberString()
+  @ApiProperty({ default: 1, required: false })
+  page: number;
+
   @ApiProperty({ required: false })
   name: string;
 }
