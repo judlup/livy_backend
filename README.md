@@ -1,4 +1,4 @@
-# Livy Backend
+# Livy Backend [![CI](https://github.com/judlup/livy_backend/actions/workflows/main.yml/badge.svg)](https://github.com/judlup/livy_backend/actions/workflows/main.yml)
 
 ## Description
 
@@ -53,6 +53,10 @@ npm run test:cov
 ```
 
 ![Jest Test](/resources/test_screenshot.png 'Demo Jest test')
+
+## Github Actions
+
+![Github Actions Test](/resources/github_actions_screenshot.png 'Demo Github Actions test')
 
 ## ToDo
 
