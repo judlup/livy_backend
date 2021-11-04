@@ -1,7 +1,9 @@
+import { IPolicies } from 'src/modules/policies/interfaces/IPolicies';
+
 export interface IClients {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: string;
-  policies?: any;
+  policies?: Array<IPolicies>;
 }

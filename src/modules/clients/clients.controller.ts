@@ -1,4 +1,12 @@
-import { Controller, Get, HttpCode, Query, Req, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -6,6 +14,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { LoginService } from '../login/login.service';
+import { PoliciesService } from '../policies/policies.service';
 import { ClientsService } from './clients.service';
 import { ClientsDto } from './dto/clients.dt';
 @ApiTags('Clients')
@@ -14,6 +23,7 @@ export class ClientsController {
   constructor(
     private readonly clientsService: ClientsService,
     private readonly loginService: LoginService,
+    private readonly policiesService: PoliciesService,
   ) {}
 
   @Get()
@@ -27,8 +37,7 @@ export class ClientsController {
   @HttpCode(200)
   @ApiResponse({
     status: 200,
-    description:
-      'Return a valid Bearer access token for the valid client_credentials provided. The token has a time to live equal to expires_in',
+    description: 'Return a list of clients',
     schema: {
       type: 'object',
       properties: {
@@ -92,6 +101,7 @@ export class ClientsController {
               clients,
               params.limit,
               params.page,
+              params.name,
               clients.length,
             ),
           );
@@ -99,7 +109,13 @@ export class ClientsController {
       return res
         .status(200)
         .json(
-          clientsPaginated(clients, params.limit, params.page, clients.length),
+          clientsPaginated(
+            clients,
+            params.limit,
+            params.page,
+            params.name,
+            clients.length,
+          ),
         );
     } else {
       return res.status(401).json({
@@ -109,14 +125,146 @@ export class ClientsController {
     }
   }
 
-  @Get('/:id')
-  getClient(id: string) {
-    // return this.clientsService.getClient(id);
+  @Get(':id')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get client information.',
+  })
+  @HttpCode(200)
+  @ApiResponse({
+    status: 200,
+    description: 'Return information about the requested client',
+    schema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+        },
+        name: {
+          type: 'string',
+        },
+        email: {
+          type: 'string',
+        },
+        role: {
+          type: 'string',
+        },
+        policies: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+            },
+            amountInsured: {
+              type: 'string',
+            },
+            inceptionDate: {
+              type: 'string',
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized error',
+    schema: {
+      type: 'object',
+      properties: { code: { type: 'number' }, message: { type: 'string' } },
+    },
+  })
+  async getClient(@Req() req, @Res() res, @Param('id') id: string) {
+    const token = req.headers.authorization;
+    if (token !== undefined) {
+      const clients = await this.clientsService.getClients(token);
+      if (clients === undefined) {
+        // This part could be improved by using a refresh token in authorization server.
+        // Instead of using a new token, the client could use the refresh token to get the information without issues.
+        const loginData = {
+          username: 'dare',
+          password: 's3cr3t',
+        };
+        const user = await this.loginService.login(loginData);
+        const clients = await this.clientsService.getClients(
+          `Bearer ${user.token}`,
+        );
+        const clientResult = clients.filter((client) => client.id === id);
+        return res.status(200).json(clientResult[0]);
+      }
+      const clientResult = clients.filter((client) => client.id === id);
+      return res.status(200).json(clientResult[0]);
+    } else {
+      return res.status(401).json({
+        code: 401,
+        message: 'Unauthorized error',
+      });
+    }
   }
 
-  @Get('/:id/policies')
-  getClientPolicies(id: string) {
-    // return this.clientsService.getClientPolicies(id);
+  @Get(':id/policies')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get client policies.',
+  })
+  @HttpCode(200)
+  @ApiResponse({
+    status: 200,
+    description: 'Return polcicies related to the requested client',
+    schema: {
+      type: 'object',
+      properties: {
+        id: {
+          type: 'string',
+        },
+        amountInsured: {
+          type: 'string',
+        },
+        inceptionDate: {
+          type: 'string',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized error',
+    schema: {
+      type: 'object',
+      properties: { code: { type: 'number' }, message: { type: 'string' } },
+    },
+  })
+  async getClientPolicies(@Req() req, @Res() res, @Param('id') id: string) {
+    //
+    // PENDING FOR USE POLICIES SERVICE AND FILTER BY CLIENT ID
+    //
+    const token = req.headers.authorization;
+    if (token !== undefined) {
+      const policies = await this.policiesService.getPolicies(token);
+      if (policies === undefined) {
+        // This part could be improved by using a refresh token in authorization server.
+        // Instead of using a new token, the client could use the refresh token to get the information without issues.
+        const loginData = {
+          username: 'dare',
+          password: 's3cr3t',
+        };
+        const user = await this.loginService.login(loginData);
+        const policies = await this.policiesService.getPolicies(
+          `Bearer ${user.token}`,
+        );
+        const policyResult = policies.filter(
+          (policy) => policy.clientId === id,
+        );
+        return res.status(200).json(policyResult[0]);
+      }
+      const policyResult = policies.filter((policy) => policy.clientId === id);
+      return res.status(200).json(policyResult[0]);
+    } else {
+      return res.status(401).json({
+        code: 401,
+        message: 'Unauthorized error',
+      });
+    }
   }
 }
 
@@ -124,8 +272,14 @@ const clientsPaginated = (
   clients: any,
   limit = 10,
   page = 1,
+  name = '',
   total: number,
 ) => {
+  if (name !== '') {
+    clients = clients.filter((client) =>
+      client.name.toLowerCase().includes(name.toLowerCase()),
+    );
+  }
   const clientsPaginated = chunk(clients, limit);
   const res = {
     page: page,
