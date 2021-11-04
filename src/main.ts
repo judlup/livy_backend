@@ -4,9 +4,9 @@ import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // app.setGlobalPrefix('api/v1');
+  app.setGlobalPrefix('api/v1');
   const config = new DocumentBuilder()
-    .setTitle('Judlup | DARE Node.js API REST assessment')
+    .setTitle('Julián Luna | DARE Node.js API REST assessment')
     .setVersion('1.0.0')
     .addBearerAuth()
     .addServer('http://localhost:3000/')
@@ -16,7 +16,7 @@ async function bootstrap() {
     )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/', app, document);
+  SwaggerModule.setup('api/v1', app, document);
   await app.listen(3000);
 }
 bootstrap();

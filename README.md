@@ -1,61 +1,59 @@
 # Livy Backend
 
-## Pendings
-
-- [ ] Add policies interfaces and put in IClients interface
-
-- [ ] Add pagination by default 10 elements per page, for limit parameter and name parameter works for a search engine
-
-- [x] Extract role, overall info and role from the token
-
-- [ ] In get clients endpoint, there is necessary to add a role validation, if the role is not admin, the user can only see the clients that are in the same role, else the user can see all the clients
-
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This is a backend for retrieve clients and policies from a Livy server, acting like a middleware.
 
-## Installation
+### Installation
 
-```bash
-$ npm install
-```
+`npm install`
 
-## Running the app
+### Running the app
 
 ```bash
 # development
-$ npm run start
+npm run start
 
 # watch mode
-$ npm run start:dev
+npm run start:dev
 
 # production mode
-$ npm run start:prod
+npm run start:prod
 ```
+
+Go to http://localhost:3000/api/v1/
+
+#### Swagger parameter test
+
+For `/api/v1/clients` and `/api/v1/clients/{client_id}`:
+
+**Client ID**
+a0ece5db-cd14-4f21-812f-966633e7be86
+
+For `/api/v1/pollcicies/{id}`
+
+**Policy ID**
+7b624ed3-00d5-4c1b-9ab8-c265067ef58b
+
+![Swagger](/resources/swagger_screenshot.png 'Demo Swagger')
 
 ## Test
 
+Run `npm run start` and in another terminal run any of these:
+
 ```bash
 # unit tests
-$ npm run test
+npm run test
 
 # e2e tests
-$ npm run test:e2e
+npm run test:e2e
 
 # test coverage
-$ npm run test:cov
+npm run test:cov
 ```
 
-## Support
+![Jest Test](/resources/test_screenshot.png 'Demo Jest test')
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## ToDo
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+- [ ] Add middleware to handle token validation and role validation
